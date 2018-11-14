@@ -6,6 +6,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+}
+html,
+body {
+  position: fixed;
+  /* overflow: hidden; */
+  overscroll-behavior: contain;
 }
 
 code {
