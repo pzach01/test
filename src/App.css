@@ -1,5 +1,15 @@
+html,
+body {
+  position: fixed;
+  /* overflow: hidden; */
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+}
+
 .App {
   text-align: center;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 
 .App-logo {

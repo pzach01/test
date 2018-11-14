@@ -1,72 +1,202 @@
 import React, { Component } from "react";
-import * as THREE from "three";
+import ReactCursorPosition from "react-cursor-position";
+import logo from "./logo.svg";
+import "./App.css";
 import lisa from "./textures/lisa.png";
 
+import nx from "./textures/SwedishRoyalCastle/nx.jpg";
+import ny from "./textures/SwedishRoyalCastle/ny.jpg";
+import nz from "./textures/SwedishRoyalCastle/nz.jpg";
+import px from "./textures/SwedishRoyalCastle/px.jpg";
+import py from "./textures/SwedishRoyalCastle/py.jpg";
+import pz from "./textures/SwedishRoyalCastle/pz.jpg";
+
+//import * as THREE from "three";
+var THREE = require("three");
+var OrbitControls = require("three-orbit-controls")(THREE);
+var TrackballControls = require("three-trackballcontrols");
+var PointerControls = require("three-pointer-controls")(THREE);
+
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { currentKey: "", mouseX: 0.5, mouseY: 0.5 };
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleTouchMove = this.handleTouchMove.bind(this);
+  }
+
+  handleKeyPress(e) {
+    this.setState({ currentKey: e.keyCode });
+    if (e.keyCode === 27) {
+      console.log("You just pressed Escape!");
+      this.cube.position.z -= 0.3;
+    }
+  }
+  handleTouchMove(e) {
+    console.log("You just touched the screen!");
+    e.preventDefault();
+
+    this.setState({
+      mouseX: e.changedTouches[0].pageX / window.innerWidth,
+      mouseY: e.changedTouches[0].pageY / window.innerHeight
+    });
+    //console.log(e.changedTouches[0]);
+  }
+  handleMouseMove(e) {
+    console.log("You just moved the mouse!");
+    this.setState({
+      mouseX: e.pageX / window.innerWidth,
+      mouseY: e.pageY / window.innerHeight
+    });
+  }
+
   componentDidMount() {
+    //document.body.classList.add("noscroll");
+
+    //document.body.style.overflow = "hidden";
+
+    //document.addEventListener("keydown", this.handleKeyPress);
+    //document.addEventListener("touchmove", this.handleTouchMove);
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
     //ADD SCENE
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xcccccc);
     //ADD CAMERA
     this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-
     this.camera.position.z = 4;
+
+    this.cubeCamera1 = new THREE.CubeCamera(1, 1000, 256);
+    this.scene.add(this.cubeCamera1);
+
+    var urls = [px, nx, py, ny, pz, nz];
+    var textureCube = new THREE.CubeTextureLoader().load(urls);
+    textureCube.mapping = THREE.CubeRefractionMapping;
+
+    this.scene.background = textureCube;
+
+    // LIGHTS
+    var ambient = new THREE.AmbientLight(0xffffff, 3);
+    this.scene.add(ambient);
+
+    var lightsphere = new THREE.SphereBufferGeometry(0.1, 16, 8);
+    //lights
+    this.light1 = new THREE.PointLight(0xffffff, 10, 5);
+    this.light1.add(
+      new THREE.Mesh(
+        lightsphere,
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      )
+    );
+    this.scene.add(this.light1);
+
     //ADD RENDERER
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.physicallyCorrectLights = true;
-    this.renderer.gammaInput = true;
-    this.renderer.gammaOutput = true;
-    this.renderer.shadowMap.enabled = true;
-
     this.renderer.setClearColor("#000000");
     this.renderer.setSize(width, height);
     this.mount.appendChild(this.renderer.domElement);
+
+    // this.renderer.domElement.addEventListener(
+    //   "keydown",
+    //   this.handleKeyDown,
+    //   false
+    // );
+    document.addEventListener("touchmove", this.handleTouchMove, {
+      passive: false
+    });
+
+    //this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    //this.controls = new PointerControls();
+    //this.controls.control(this.camera);
+    //this.controls.listenTo(this.renderer.domElement);
+    //this.controls.addEventListener("change", this.render);
     //ADD CUBE
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    var texture = new THREE.TextureLoader().load(lisa);
 
-    const material = new THREE.MeshStandardMaterial({
-      //color: "#433F81"
-      //wireframe: true,
-      map: texture
+    var cubeTexture = new THREE.TextureLoader().load(lisa);
+    const material = new THREE.MeshPhongMaterial({
+      color: "orange",
+      metalness: 1,
+      roughness: 0.5,
+      map: cubeTexture,
+      //envMap: textureCube
+      envMap: this.cubeCamera1.renderTarget.texture
     });
 
-    this.cube = new THREE.Mesh(geometry, material);
-    this.cube.castShadow = true;
+    const material2 = new THREE.MeshPhongMaterial({
+      //color: "green",
+      envMap: this.cubeCamera1.renderTarget.texture
+    });
+
+    this.cube = new THREE.Mesh(geometry, material2);
+
+    //this.camera.add(this.cube);
     this.scene.add(this.cube);
 
+    this.cube.position.set(0, 0, -5);
+    this.scene.add(this.camera);
     this.cube2 = new THREE.Mesh(geometry, material);
-    this.cube2.castShadow = true;
-    this.cube2.position.x = 1;
+    //this.scene.add(this.cube);
+    this.cube2.position.x = 2;
     this.scene.add(this.cube2);
+    var sphere = new THREE.Mesh(
+      new THREE.IcosahedronBufferGeometry(0.5, 3),
+      material2
+    );
+    sphere.position.y = 2;
+    this.scene.add(sphere);
 
-    var planeGeometry = new THREE.PlaneBufferGeometry(100, 100, 32);
-    var planeMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffff00
-    });
+    var torusgeometry = new THREE.TorusGeometry(1, 0.4, 16, 100);
+    this.torus = new THREE.Mesh(torusgeometry, material2);
+    this.torus.position.x = -1.5;
+    this.torus.position.z = -1.5;
+    this.scene.add(this.torus);
 
-    this.plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    this.plane.rotation.x = 80;
-    this.plane.position.y = -1;
-    this.plane.receiveShadow = true;
+    this.toruses = [];
+    this.spheres = [];
+    this.cubes = [];
+    for (var i = 0; i < 150; i++) {
+      var torusgeometry = new THREE.TorusGeometry(1, 0.4, 16, 100);
+      this.torus = new THREE.Mesh(torusgeometry, material2);
+      this.torus.position.x = (Math.random() - 0.5) * 100;
+      this.torus.position.y = (Math.random() - 0.5) * 100;
+      this.torus.position.z = (Math.random() - 0.5) * 100;
+      this.torus.rotation.set(
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI
+      );
+      this.toruses.push(this.torus);
+      this.scene.add(this.torus);
 
-    this.scene.add(this.plane);
+      var sphere = new THREE.Mesh(
+        new THREE.IcosahedronBufferGeometry(0.5, 3),
+        material2
+      );
+      sphere.position.x = (Math.random() - 0.5) * 100;
+      sphere.position.y = (Math.random() - 0.5) * 100;
+      sphere.position.z = (Math.random() - 0.5) * 100;
 
-    var ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-    ambientLight.castShadow = true;
-    this.scene.add(ambientLight);
-    var light = new THREE.SpotLight(0xffffff, 0.8);
+      this.spheres.push(sphere);
+      this.scene.add(sphere);
+      var cube = new THREE.Mesh(geometry, material2);
+      cube.position.x = (Math.random() - 0.5) * 100;
+      cube.position.y = (Math.random() - 0.5) * 100;
+      cube.position.z = (Math.random() - 0.5) * 100;
+      cube.rotation.set(
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI
+      );
 
-    light.position.set(0, 2, 0);
-    light.castShadow = true;
-    var lightHelper = new THREE.SpotLightHelper(light);
-    this.scene.add(light);
-    this.scene.add(lightHelper);
+      this.cubes.push(cube);
+      this.scene.add(cube);
+    }
     this.start();
   }
   componentWillUnmount() {
+    // document.removeEventListener("keydown", this.handleKeyPress);
     this.stop();
     this.mount.removeChild(this.renderer.domElement);
   }
@@ -79,25 +209,65 @@ class App extends Component {
     cancelAnimationFrame(this.frameId);
   };
   animate = () => {
-    this.cube.rotation.x += 0.04;
+    this.cube.rotation.x += 0.01;
     this.cube.rotation.y += 0.01;
-    //this.camera.target.position.copy(this.cube);
-    this.camera.lookAt(0, 0, 0);
-    this.camera.position.x += 0.2;
+    this.torus.rotation.x += 0.03;
+    this.torus.rotation.y += 0.03;
+    this.torus.rotation.z += 0.01;
+    for (var i = 0; i < 150; i++) {
+      this.cubes[i].rotation.x += 0.01;
+      this.cubes[i].rotation.y += 0.01;
+      this.cubes[i].rotation.z += 0.005;
+      this.toruses[i].rotation.x += 0.03;
+      this.toruses[i].rotation.y += 0.03;
+      this.toruses[i].rotation.z += 0.01;
+    }
+
+    this.camera.translateZ(-0.07);
+    this.camera.rotateY((0.5 - this.state.mouseX) / 50);
+    this.camera.rotateX((0.5 - this.state.mouseY) / 50);
+
+    this.cubeCamera1.updateCubeMap(this.renderer, this.scene);
+
+    var time = Date.now() * 0.0005;
+    this.light1.position.x = Math.sin(time * 2) * 4 + 2;
+    this.light1.position.y = Math.cos(time * 1) * 4 + 2;
+    this.light1.position.z = Math.cos(time * 1) * 4 + 2;
+
+    //this.controls.update();
+
     this.renderScene();
+
+    //this.controls.update() must be called after any manual changes to the camera's transform
     this.frameId = window.requestAnimationFrame(this.animate);
   };
+
+  //if (this.controls.keys.LEFT) console.log("left");
+  // handleKeyDown = event => {
+  //   console.log("up");
+  // };
   renderScene = () => {
     this.renderer.render(this.scene, this.camera);
   };
+
   render() {
     return (
+      // <div onKeyDown={this.handleKeyDown} tabIndex="0">
+      //   {/* <h2>
+      //     Last pressed keycode: {this.state.currentKey}, Last mouse position:{" "}
+      //     {this.state.mouseX}, {this.state.mouseY}
+      //   </h2> */}
       <div
+        // onFocus="true"
+        // onClick={this.handleKeyDown}
+        onMouseMove={this.handleMouseMove}
+        onTouchMove={this.handleTouchMove}
         style={{ width: window.innerWidth, height: window.innerHeight }}
         ref={mount => {
           this.mount = mount;
         }}
       />
+      // </div>
     );
   }
 }
