@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://pzach01.github.io/test/",
   "dependencies": {
+    "cannon": "^0.6.2",
     "gh-pages": "^2.0.1",
     "react": "^16.6.0",
     "react-cursor-position": "^3.0.3",
