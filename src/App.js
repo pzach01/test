@@ -16,6 +16,7 @@ var THREE = require("three");
 var OrbitControls = require("three-orbit-controls")(THREE);
 var TrackballControls = require("three-trackballcontrols");
 var PointerControls = require("three-pointer-controls")(THREE);
+var CANNON = require("cannon");
 
 class App extends Component {
   constructor(props) {
@@ -37,17 +38,19 @@ class App extends Component {
   handleTouchMove(e) {
     console.log("You just touched the screen!");
     e.preventDefault();
-
+    var lastXPosition = this.state.mouseX;
     this.setState({
-      mouseX: e.changedTouches[0].pageX / window.innerWidth,
+      
+      mouseX: lastXPosition - e.changedTouches[0].pageX / window.innerWidth,
       mouseY: e.changedTouches[0].pageY / window.innerHeight
     });
     //console.log(e.changedTouches[0]);
   }
   handleMouseMove(e) {
     console.log("You just moved the mouse!");
+    var lastXPosition = this.state.mouseX;
     this.setState({
-      mouseX: e.pageX / window.innerWidth,
+      mouseX: lastXPosition - e.pageX / window.innerWidth,
       mouseY: e.pageY / window.innerHeight
     });
   }
@@ -112,6 +115,10 @@ class App extends Component {
     //this.controls.listenTo(this.renderer.domElement);
     //this.controls.addEventListener("change", this.render);
     //ADD CUBE
+    this.world = new CANNON.World();
+    this.world.broadphase = new CANNON.NaiveBroadphase();
+    //this.world.gravity.set(0, -10, 0);
+
     const geometry = new THREE.BoxGeometry(1, 1, 1);
 
     var cubeTexture = new THREE.TextureLoader().load(lisa);
@@ -131,11 +138,20 @@ class App extends Component {
 
     this.cube = new THREE.Mesh(geometry, material2);
 
-    //this.camera.add(this.cube);
-    this.scene.add(this.cube);
+    this.sphereShape = new CANNON.Sphere(3);
+    this.cubeBody = new CANNON.Body({ mass: 0.2, shape: this.sphereShape });
+    //cubeBody.position.set(0, 20, 0);
+    this.cubeBody.position.set(0, 0, 0);
+    //this.cubeBody.velocity.set(0, 0, -5);
 
-    this.cube.position.set(0, 0, -5);
-    this.scene.add(this.camera);
+    this.world.add(this.cubeBody);
+
+    this.cube.add(this.camera);
+    this.scene.add(this.cube);
+    //this.camera.add(this.cubeBody);
+
+    this.bodyz = this.cubeBody;
+    //this.scene.add(this.camera);
     this.cube2 = new THREE.Mesh(geometry, material);
     //this.scene.add(this.cube);
     this.cube2.position.x = 2;
@@ -156,19 +172,27 @@ class App extends Component {
     this.toruses = [];
     this.spheres = [];
     this.cubes = [];
+    this.bodies = [];
     for (var i = 0; i < 150; i++) {
+      this.torusShape = new CANNON.Cylinder(3, 3, 4, 8);
+      this.torusBody = new CANNON.Body({ mass: 1, shape: this.torusShape });
+
+      //cubeBody.position.set(0, 20, 0);
       var torusgeometry = new THREE.TorusGeometry(1, 0.4, 16, 100);
       this.torus = new THREE.Mesh(torusgeometry, material2);
-      this.torus.position.x = (Math.random() - 0.5) * 100;
-      this.torus.position.y = (Math.random() - 0.5) * 100;
-      this.torus.position.z = (Math.random() - 0.5) * 100;
-      this.torus.rotation.set(
-        Math.random() * 2 * Math.PI,
-        Math.random() * 2 * Math.PI,
-        Math.random() * 2 * Math.PI
-      );
+      this.torusBody.position.x = (Math.random() - 0.5) * 100;
+      this.torusBody.position.y = (Math.random() - 0.5) * 100;
+      this.torusBody.position.z = (Math.random() - 0.5) * 100;
+      //this.torusBody.rotation.set(
+      //Math.random() * 2 * Math.PI,
+      //Math.random() * 2 * Math.PI,
+      //Math.random() * 2 * Math.PI
+      //);
       this.toruses.push(this.torus);
       this.scene.add(this.torus);
+      this.world.add(this.torusBody);
+
+      this.bodies[i] = this.torusBody;
 
       var sphere = new THREE.Mesh(
         new THREE.IcosahedronBufferGeometry(0.5, 3),
@@ -193,6 +217,8 @@ class App extends Component {
       this.cubes.push(cube);
       this.scene.add(cube);
     }
+
+    this.bodyzLocalVelocity = new CANNON.Vec3(0, 0, -3.5);
     this.start();
   }
   componentWillUnmount() {
@@ -209,23 +235,43 @@ class App extends Component {
     cancelAnimationFrame(this.frameId);
   };
   animate = () => {
-    this.cube.rotation.x += 0.01;
-    this.cube.rotation.y += 0.01;
     this.torus.rotation.x += 0.03;
     this.torus.rotation.y += 0.03;
     this.torus.rotation.z += 0.01;
+    this.world.step(1 / 60);
+
     for (var i = 0; i < 150; i++) {
       this.cubes[i].rotation.x += 0.01;
       this.cubes[i].rotation.y += 0.01;
       this.cubes[i].rotation.z += 0.005;
-      this.toruses[i].rotation.x += 0.03;
-      this.toruses[i].rotation.y += 0.03;
-      this.toruses[i].rotation.z += 0.01;
-    }
+      //this.toruses[i].rotation.x += 0.03;
+      //this.toruses[i].rotation.y += 0.03;
+      //this.toruses[i].rotation.z += 0.01;
 
-    this.camera.translateZ(-0.07);
-    this.camera.rotateY((0.5 - this.state.mouseX) / 50);
-    this.camera.rotateX((0.5 - this.state.mouseY) / 50);
+      this.toruses[i].position.copy(this.bodies[i].position);
+      this.toruses[i].quaternion.copy(this.bodies[i].quaternion);
+    }
+    //this.bodyz.translateZ(-0.07);
+
+    //this.camera.position.rotateY((0.5 - this.state.mouseX) / 50);
+    //this.camera.position.rotateX((0.5 - this.state.mouseY) / 50);
+
+    // this.cube.rotation.x += 0.01;
+    // this.cube.rotation.y += 0.01;
+
+    //this.bodyz.position.z -= 0.08;
+    //this.bodyz.position.x -= (0.5 - this.state.mouseX) * 0.5;
+    //this.bodyz.position.y += (0.5 - this.state.mouseY) * 0.5;
+
+    var axis = new CANNON.Vec3(0, 1, 0);
+    var angle = this.state.mouseX * 3;
+    this.bodyz.quaternion.setFromAxisAngle(axis, angle);
+
+    var worldVelocity = this.bodyz.quaternion.vmult(this.bodyzLocalVelocity);
+    this.bodyz.velocity.copy(worldVelocity);
+
+    this.cube.position.copy(this.bodyz.position);
+    this.cube.quaternion.copy(this.bodyz.quaternion);
 
     this.cubeCamera1.updateCubeMap(this.renderer, this.scene);
 
