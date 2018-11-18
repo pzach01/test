@@ -38,21 +38,21 @@ class App extends Component {
   handleTouchMove(e) {
     console.log("You just touched the screen!");
     e.preventDefault();
-    var lastXPosition = this.state.mouseX;
+
     this.setState({
-      
-      mouseX: lastXPosition - e.changedTouches[0].pageX / window.innerWidth,
+      mouseX: e.changedTouches[0].pageX / window.innerWidth,
       mouseY: e.changedTouches[0].pageY / window.innerHeight
     });
-    //console.log(e.changedTouches[0]);
   }
+
   handleMouseMove(e) {
     console.log("You just moved the mouse!");
-    var lastXPosition = this.state.mouseX;
+
     this.setState({
-      mouseX: lastXPosition - e.pageX / window.innerWidth,
+      mouseX: e.pageX / window.innerWidth,
       mouseY: e.pageY / window.innerHeight
     });
+    console.log(e.pageX / window.innerWidth);
   }
 
   componentDidMount() {
@@ -218,7 +218,7 @@ class App extends Component {
       this.scene.add(cube);
     }
 
-    this.bodyzLocalVelocity = new CANNON.Vec3(0, 0, -3.5);
+    this.bodyzLocalVelocity = new CANNON.Vec3(0, 0, -5);
     this.start();
   }
   componentWillUnmount() {
@@ -263,9 +263,27 @@ class App extends Component {
     //this.bodyz.position.x -= (0.5 - this.state.mouseX) * 0.5;
     //this.bodyz.position.y += (0.5 - this.state.mouseY) * 0.5;
 
-    var axis = new CANNON.Vec3(0, 1, 0);
-    var angle = this.state.mouseX * 3;
-    this.bodyz.quaternion.setFromAxisAngle(axis, angle);
+    // this block of code sets the quaternion based on mouse or touch screen input
+    // this wasn't ideal because the position would "reset" on new input
+    // it is better to modify the angular velocity of the object
+    // var axis = new CANNON.Vec3(0, 1, 0);
+    // var angle = this.state.mouseX - 0.5;
+    // var axis2 = new CANNON.Vec3(1, 0, 0);
+    // var angle2 = this.state.mouseY - 0.5;
+    // var q1 = new CANNON.Quaternion();
+    // var q2 = new CANNON.Quaternion();
+    // q1.setFromAxisAngle(axis, angle);
+    // q2.setFromAxisAngle(axis2, angle2);
+    // var resultant = q1.mult(q2);
+    //this.bodyz.quaternion.copy(resultant);
+
+    var xAxisAngularVelocity = this.state.mouseY - 0.5;
+    var yAxisAngularVelocity = this.state.mouseX - 0.5;
+    this.bodyz.angularVelocity.set(
+      xAxisAngularVelocity,
+      yAxisAngularVelocity,
+      0
+    );
 
     var worldVelocity = this.bodyz.quaternion.vmult(this.bodyzLocalVelocity);
     this.bodyz.velocity.copy(worldVelocity);
