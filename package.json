@@ -7,14 +7,10 @@
     "cannon": "^0.6.2",
     "gh-pages": "^2.0.1",
     "react": "^16.6.0",
-    "react-cursor-position": "^3.0.3",
     "react-dom": "^16.6.0",
     "react-scripts": "2.1.1",
     "react-touch-position": "^2.0.2",
-    "three": "^0.98.0",
-    "three-orbit-controls": "^82.1.0",
-    "three-pointer-controls": "^0.6.0",
-    "three-trackballcontrols": "0.0.7"
+    "three": "^0.98.0"
   },
   "scripts": {
     "start": "react-scripts start",
