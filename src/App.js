@@ -42,8 +42,9 @@ class App extends Component {
       this.setState({ powerup: this.state.powerup + 1 });
       this.bodyToRemove = e.body;
       var indexToRemove = this.powerupBodies.indexOf(e.body);
-      this.scene.remove(this.powerups[indexToRemove]);
-      console.log(indexToRemove);
+      var powerupToRemove = this.powerups[indexToRemove];
+      this.scene.remove(powerupToRemove);
+
       this.setState({ removeBody: true });
     }
   }
@@ -63,6 +64,44 @@ class App extends Component {
       mouseX: e.changedTouches[0].pageX / window.innerWidth,
       mouseY: e.changedTouches[0].pageY / window.innerHeight
     });
+  }
+
+  createExplosion(position) {
+    console.log("hi");
+    var radius = 0.1;
+    for (var i = 0; i < 50; i++) {
+      var explosionShape = new CANNON.Sphere(radius);
+      this.explosionBody = new CANNON.Body({
+        mass: 1,
+        shape: explosionShape,
+        collisionFilterMask: 0
+      });
+
+      this.explosionBody.position.set(position.x, position.y, position.z);
+      var particleVelocityX = 20 * (Math.random() - 0.5);
+      var particleVelocityY = 20 * (Math.random() - 0.5);
+      var particleVelocityZ = 20 * (Math.random() - 0.5);
+
+      this.explosionBody.velocity.set(
+        particleVelocityX,
+        particleVelocityY,
+        particleVelocityZ
+      );
+      this.explosionBodies.push(this.explosionBody);
+      this.world.add(this.explosionBody);
+
+      var explosionMaterial = new THREE.MeshPhongMaterial({
+        color: "blue",
+        envMap: this.cubeCamera1.renderTarget.texture
+      });
+      this.explosion = new THREE.Mesh(
+        new THREE.IcosahedronBufferGeometry(radius, 3),
+        explosionMaterial
+      );
+
+      this.explosions.push(this.explosion);
+      this.scene.add(this.explosion);
+    }
   }
 
   createBullet(startLocationX, startLocationY, radius) {
@@ -275,6 +314,8 @@ class App extends Component {
     this.cubeBodies = [];
     this.powerups = [];
     this.powerupBodies = [];
+    this.explosions = [];
+    this.explosionBodies = [];
 
     this.bullets = [];
     this.bulletBodies = [];
@@ -389,6 +430,7 @@ class App extends Component {
     this.torus.rotation.z += 0.01;
     if (this.state.removeBody == true) {
       this.world.removeBody(this.bodyToRemove);
+      this.createExplosion(this.bodyToRemove.position);
       this.scene.remove(this.objectToRemove);
       this.setState({ removeBody: false });
     }
@@ -415,6 +457,10 @@ class App extends Component {
     for (var i = 0; i < 20; i++) {
       this.powerups[i].position.copy(this.powerupBodies[i].position);
       this.powerups[i].quaternion.copy(this.powerupBodies[i].quaternion);
+    }
+    for (var i = 0; i < this.explosionBodies.length; i++) {
+      this.explosions[i].position.copy(this.explosionBodies[i].position);
+      this.explosions[i].quaternion.copy(this.explosionBodies[i].quaternion);
     }
 
     var axis = new CANNON.Vec3(0, 1, 0);
