@@ -250,15 +250,11 @@ class App extends Component {
 
     var cubeTexture = new THREE.TextureLoader().load(lisa);
     const material = new THREE.MeshPhongMaterial({
-      //color: "orange",
-
       map: cubeTexture,
-      //envMap: textureCube
       envMap: this.cubeCamera1.renderTarget.texture
     });
 
     const material2 = new THREE.MeshPhongMaterial({
-      //color: "green",
       envMap: this.cubeCamera1.renderTarget.texture
     });
     const powerupMaterial = new THREE.MeshPhongMaterial({
@@ -292,13 +288,6 @@ class App extends Component {
     this.cube2.position.x = 2;
     this.scene.add(this.cube2);
 
-    // var sphere = new THREE.Mesh(
-    //   new THREE.IcosahedronBufferGeometry(0.5, 3),
-    //   material2
-    // );
-    // sphere.position.y = 2;
-    // this.scene.add(sphere);
-
     var torusgeometry = new THREE.TorusGeometry(1, 0.4, 16, 100);
     this.torus = new THREE.Mesh(torusgeometry, material2);
     this.torus.position.x = -1.5;
@@ -330,14 +319,11 @@ class App extends Component {
 
       var torusgeometry2 = new THREE.TorusGeometry(1, 0.4, 16, 100);
       this.torus = new THREE.Mesh(torusgeometry2, material2);
+
       this.torusBody.position.x = (Math.random() - 0.5) * 100;
       this.torusBody.position.y = (Math.random() - 0.5) * 100;
       this.torusBody.position.z = (Math.random() - 0.5) * 100;
-      //this.torusBody.rotation.set(
-      //Math.random() * 2 * Math.PI,
-      //Math.random() * 2 * Math.PI,
-      //Math.random() * 2 * Math.PI
-      //);
+
       this.toruses.push(this.torus);
       this.scene.add(this.torus);
       this.world.add(this.torusBody);
@@ -403,7 +389,7 @@ class App extends Component {
       //////
     }
 
-    this.playerBodyLocalVelocity = new CANNON.Vec3(0, 0, -5);
+    this.playerBodyLocalVelocity = new CANNON.Vec3(0, 0, -10);
     this.playerBodyLocalXAxis = new CANNON.Vec3(1, 0, 0);
     this.playerBodyLocalYAxis = new CANNON.Vec3(0, 1, 0);
 
@@ -440,9 +426,6 @@ class App extends Component {
       this.cubes[i].rotation.x += 0.01;
       this.cubes[i].rotation.y += 0.01;
       this.cubes[i].rotation.z += 0.005;
-      //this.toruses[i].rotation.x += 0.03;
-      //this.toruses[i].rotation.y += 0.03;
-      //this.toruses[i].rotation.z += 0.01;
 
       this.toruses[i].position.copy(this.torusBodies[i].position);
       this.toruses[i].quaternion.copy(this.torusBodies[i].quaternion);
@@ -468,19 +451,6 @@ class App extends Component {
     this.angle2 -= 0.05 * (this.state.mouseY - 0.5);
     var yRange = (0.8 * (1 * Math.PI)) / 2;
     this.angle2 = Math.max(-yRange, Math.min(yRange, this.angle2));
-
-    //this.playerBody.quaternion.vmult(axis, axis);
-    //this.playerBody.quaternion.vmult(axis2, axis2);
-
-    // if ((Math.abs(this.angle2)%(2*Math.PI) < (Math.PI/2)) || (Math.abs(this.angle2)%(2*Math.PI) > (3*Math.PI/2)))
-    //{
-
-    //}
-    // else
-    // {
-    //   this.angle += .02*(this.state.mouseX - 0.5);
-    //   console.log("...");
-    // }
 
     var q1 = new CANNON.Quaternion();
     var q2 = new CANNON.Quaternion();
@@ -512,32 +482,19 @@ class App extends Component {
       this.bullets[i].quaternion.copy(this.bulletBodies[i].quaternion);
     }
 
-    //this.controls.update();
-
     this.renderScene();
 
     //this.controls.update() must be called after any manual changes to the camera's transform
     this.frameId = window.requestAnimationFrame(this.animate);
   };
 
-  //if (this.controls.keys.LEFT) console.log("left");
-  // handleKeyDown = event => {
-  //   console.log("up");
-  // };
   renderScene = () => {
     this.renderer.render(this.scene, this.camera);
   };
 
   render() {
     return (
-      // <div onKeyDown={this.handleKeyDown} tabIndex="0">
-      //   {/* <h2>
-      //     Last pressed keycode: {this.state.currentKey}, Last mouse position:{" "}
-      //     {this.state.mouseX}, {this.state.mouseY}
-      //   </h2> */}
       <div
-        // onFocus="true"
-        // onClick={this.handleKeyDown}
         onClick={this.handleTouchStart}
         onTouchStart={this.handleTouchStart}
         onMouseMove={this.handleMouseMove}
@@ -547,7 +504,6 @@ class App extends Component {
           this.mount = mount;
         }}
       />
-      // </div>
     );
   }
 }
