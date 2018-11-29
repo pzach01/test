@@ -1,7 +1,7 @@
 # test
 
 This is a first person shooter game concept using three.js geometry and cannon.js physics engine. <br>
-Website hosted by gh-pages and published at <a href="https://pzach01.github.io/test/" target="_blank" rel="noopener noreferrer" >https://pzach01.github.io/test/</a>
+Website hosted by gh-pages and published at <a target="_blank" rel="noopener noreferrer" href="https://pzach01.github.io/test/" >https://pzach01.github.io/test/</a>
 
 ## Available Scripts
 
