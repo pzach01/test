@@ -1,7 +1,16 @@
 # test
 
-This is a first person shooter game concept using three.js geometry and cannon.js physics engine. <br>
+This is a first person shooter game concept using react.js, three.js geometry and cannon.js physics engine. <br>
 Website hosted by gh-pages and published at https://pzach01.github.io/test/
+
+## Controls
+
+Move Player: Pointer or Touchscreen Move
+Shoot: Click or Touchscreen Start
+
+## Game Objects
+
+Green Cubes: Powerups
 
 ## Available Scripts
 
