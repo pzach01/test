@@ -67,7 +67,6 @@ class App extends Component {
   }
 
   createExplosion(position) {
-    console.log("hi");
     var radius = 0.1;
     for (var i = 0; i < 50; i++) {
       var explosionShape = new CANNON.Sphere(radius);
@@ -428,7 +427,7 @@ class App extends Component {
     this.torus.rotation.x += 0.03;
     this.torus.rotation.y += 0.03;
     this.torus.rotation.z += 0.01;
-    if (this.state.removeBody == true) {
+    if (this.state.removeBody === true) {
       this.world.removeBody(this.bodyToRemove);
       this.createExplosion(this.bodyToRemove.position);
       this.scene.remove(this.objectToRemove);
